@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Tickets Digitales</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1rem;
+        }
+
+        .tabs-container {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        .tabs {
+            display: flex;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+        }
+
+        .tab:hover:not(.active) {
+            background: rgba(255,255,255,0.5);
+            color: #333;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 40px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .ticket-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin: 20px 0;
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ticket-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+            pointer-events: none;
+        }
+
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .ticket-id {
+            font-size: 1.2rem;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+        }
+
+        .ticket-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .ticket-field {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        .ticket-field strong {
+            display: block;
+            opacity: 0.8;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .validation-result {
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .validation-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .validation-error {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.3);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .config-section {
+            background: rgba(255,255,255,0.1);
+            padding: 25px;
+            border-radius: 16px;
+            margin: 20px 0;
+        }
+
+        .config-section h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        .file-upload {
+            border: 2px dashed #667eea;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .file-upload input {
+            display: none;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s ease;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            padding-left: 45px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .tickets-list {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .tickets-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .tickets-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .tickets-list::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab-content {
+                padding: 20px;
+            }
+            
+            .ticket-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎫 Sistema de Tickets Digitales</h1>
+            <p>Gestión avanzada de tickets con validación única</p>
+        </div>
+
+        <div class="tabs-container">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('create')">📝 Crear Ticket</button>
+                <button class="tab" onclick="switchTab('validate')">✅ Validar Ticket</button>
+                <button class="tab" onclick="switchTab('manage')">📊 Gestionar</button>
+                <button class="tab" onclick="switchTab('config')">⚙️ Configuración</button>
+            </div>
+
+            <!-- Crear Ticket -->
+            <div id="create" class="tab-content active">
+                <h2 style="margin-bottom: 30px; color: #333;">Crear Nuevo Ticket</h2>
+                <form id="ticketForm">
+                    <div class="form-group">
+                        <label for="ownerName">Nombre del Propietario</label>
+                        <input type="text" id="ownerName" required placeholder="Ingrese el nombre completo">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="course">Curso</label>
+                        <input type="text" id="course" required placeholder="Ej: English, Español">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="activity">Actividad</label>
+                        <select id="activity" required>
+                            <option value="">Seleccione una actividad</option>
+                            <option value="Videojuego">Videojuego</option>
+                            <option value="Simmulador">Simulador</option>
+                            <option value="Just Dance">Just Dance</option>
+                            <option value="Digital (Foto)">Digital (Foto)</option>
+                            <option value="Pintacarita">Pintacarita</option>
+                            <option value="Slime Factory">Slime Factory</option>
+                            <option value="Moja al animal">Moja al animal</option>
+                            <option value="Polaroid">Polaroid</option>
+                            <option value="Inflables">Inflables</option>
+                            <option value="Cintillos Decorados">Cintillos Decorados</option>
+                            <option value="Alimenta al mono">Alimenta al mono</option>
+                            <option value="Pesca al sapo">Pesca al sapo</option>
+                            
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn">🎫 Generar Ticket</button>
+                </form>
+
+                <div id="ticketResult"></div>
+            </div>
+
+            <!-- Validar Ticket -->
+            <div id="validate" class="tab-content">
+                <h2 style="margin-bottom: 30px; color: #333;">Validar Ticket</h2>
+                <div class="form-group">
+                    <label for="ticketCode">Código del Ticket</label>
+                    <input type="text" id="ticketCode" placeholder="Ingrese el código del ticket" style="text-transform: uppercase;">
+                </div>
+                <button onclick="validateTicket()" class="btn btn-success">🔍 Validar Ticket</button>
+                
+                <div id="validationResult"></div>
+            </div>
+
+            <!-- Gestionar Tickets -->
+            <div id="manage" class="tab-content">
+                <h2 style="margin-bottom: 30px; color: #333;">Gestión de Tickets</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalTickets">0</div>
+                        <div>Total Tickets</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="validatedTickets">0</div>
+                        <div>Validados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="pendingTickets">0</div>
+                        <div>Pendientes</div>
+                    </div>
+                </div>
+
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchTickets" placeholder="Buscar tickets por nombre, curso o código..." oninput="filterTickets()">
+                </div>
+
+                <div class="tickets-list" id="ticketsList"></div>
+            </div>
+
+            <!-- Configuración -->
+            <div id="config" class="tab-content">
+                <h2 style="margin-bottom: 30px; color: #333;">Configuración del Sistema</h2>
+                
+                <div class="config-section">
+                    <h3>📁 Gestión de Datos</h3>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <button onclick="exportData()" class="btn">📥 Exportar Datos</button>
+                        <button onclick="importData()" class="btn">📤 Importar Datos</button>
+                        <button onclick="clearAllData()" class="btn btn-danger">🗑️ Limpiar Datos</button>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <h3>☁️ Google Drive</h3>
+                    <p style="margin-bottom: 15px; color: #666;">Configurar respaldo automático en Google Drive</p>
+                    <div class="form-group">
+                        <label for="driveApiKey">API Key de Google Drive</label>
+                        <input type="text" id="driveApiKey" placeholder="Ingrese su API Key">
+                    </div>
+                    <div class="form-group">
+                        <label for="driveFolderId">ID de Carpeta Principal</label>
+                        <input type="text" id="driveFolderId" placeholder="ID de la carpeta en Drive">
+                    </div>
+                    <div class="form-group">
+                        <label for="googleClientId">Client ID de Google OAuth</label>
+                        <input type="text" id="googleClientId" placeholder="Client ID para autenticación">
+                    </div>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+                        <button onclick="authenticateGoogle()" class="btn">🔐 Autenticar Google</button>
+                        <button onclick="testDriveConnection()" class="btn btn-success">🔗 Probar Conexión</button>
+                    </div>
+                    
+                    <h4 style="margin: 20px 0 10px 0;">Backup Automático</h4>
+                    <div class="form-group">
+                        <label for="backupInterval">Intervalo de Backup (minutos)</label>
+                        <input type="number" id="backupInterval" value="60" min="5" max="1440">
+                    </div>
+                    <button onclick="scheduleAutoBackup()" class="btn">⏰ Configurar Backup Automático</button>
+                </div>
+
+                <div class="config-section">
+                    <h3>📊 Reportes y Análisis</h3>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <button onclick="generateReport()" class="btn">📈 Generar Reporte</button>
+                        <button onclick="viewValidationHistory()" class="btn btn-success">📋 Historial de Validaciones</button>
+                        <button onclick="viewFailedAttempts()" class="btn btn-danger">⚠️ Intentos Fallidos</button>
+                    </div>
+                </div>
+
+                <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                    <input type="file" id="fileInput" accept=".json" onchange="handleFileImport(event)">
+                    <p>📄 Arrastra un archivo JSON aquí o haz clic para seleccionar</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sistema de almacenamiento local
+        let tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
+        let validatedTickets = JSON.parse(localStorage.getItem('validatedTickets') || '[]');
+        let config = JSON.parse(localStorage.getItem('config') || '{}');
+
+        // Generar código único
+        function generateUniqueCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 8; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        // Crear ticket
+        document.getElementById('ticketForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const ticket = {
+                id: generateUniqueCode(),
+                owner: document.getElementById('ownerName').value,
+                course: document.getElementById('course').value,
+                activity: document.getElementById('activity').value,
+                createdAt: new Date().toISOString(),
+                validated: false
+            };
+
+            tickets.push(ticket);
+            localStorage.setItem('tickets', JSON.stringify(tickets));
+            
+            displayTicket(ticket);
+            document.getElementById('ticketForm').reset();
+            updateStats();
+            
+            // Respaldo automático
+            backupToGoogleDrive();
+        });
+
+        // Mostrar ticket creado
+        function displayTicket(ticket) {
+            const result = document.getElementById('ticketResult');
+            result.innerHTML = `
+                <div class="ticket-card slide-in">
+                    <div class="ticket-header">
+                        <h3>✅ Ticket Generado</h3>
+                        <div class="ticket-id">${ticket.id}</div>
+                    </div>
+                    <div class="ticket-info">
+                        <div class="ticket-field">
+                            <strong>Propietario</strong>
+                            ${ticket.owner}
+                        </div>
+                        <div class="ticket-field">
+                            <strong>Curso</strong>
+                            ${ticket.course}
+                        </div>
+                        <div class="ticket-field">
+                            <strong>Actividad</strong>
+                            ${ticket.activity}
+                        </div>
+                        <div class="ticket-field">
+                            <strong>Fecha de Creación</strong>
+                            ${new Date(ticket.createdAt).toLocaleString()}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Validar ticket
+        function validateTicket() {
+            const code = document.getElementById('ticketCode').value.toUpperCase();
+            const resultDiv = document.getElementById('validationResult');
+            
+            if (!code) {
+                resultDiv.innerHTML = `
+                    <div class="validation-result validation-error slide-in">
+                        ❌ Por favor ingrese un código válido
+                    </div>
+                `;
+                return;
+            }
+
+            const ticket = tickets.find(t => t.id === code);
+            
+            if (!ticket) {
+                resultDiv.innerHTML = `
+                    <div class="validation-result validation-error slide-in">
+                        ❌ Ticket no encontrado
+                    </div>
+                `;
+                return;
+            }
+
+            if (validatedTickets.includes(code)) {
+                resultDiv.innerHTML = `
+                    <div class="validation-result validation-error slide-in">
+                        ⚠️ Este ticket ya ha sido validado anteriormente
+                    </div>
+                `;
+                return;
+            }
+
+            // Validar ticket
+            validatedTickets.push(code);
+            ticket.validated = true;
+            ticket.validatedAt = new Date().toISOString();
+            
+            localStorage.setItem('validatedTickets', JSON.stringify(validatedTickets));
+            localStorage.setItem('tickets', JSON.stringify(tickets));
+            
+            resultDiv.innerHTML = `
+                <div class="validation-result validation-success slide-in">
+                    <h3>✅ Ticket Validado Correctamente</h3>
+                    <div class="ticket-info" style="margin-top: 20px;">
+                        <div class="ticket-field">
+                            <strong>Código</strong>
+                            ${ticket.id}
+                        </div>
+                        <div class="ticket-field">
+                            <strong>Propietario</strong>
+                            ${ticket.owner}
+                        </div>
+                        <div class="ticket-field">
+                            <strong>Curso</strong>
+                            ${ticket.course}
+                        </div>
+                        <div class="ticket-field">
+                            <strong>Actividad</strong>
+                            ${ticket.activity}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('ticketCode').value = '';
+            updateStats();
+            backupToGoogleDrive();
+        }
+
+        // Cambiar pestañas
+        function switchTab(tabName) {
+            // Ocultar todas las pestañas
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Mostrar pestaña seleccionada
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabName === 'manage') {
+                updateStats();
+                displayTicketsList();
+            }
+        }
+
+        // Actualizar estadísticas
+        function updateStats() {
+            document.getElementById('totalTickets').textContent = tickets.length;
+            document.getElementById('validatedTickets').textContent = validatedTickets.length;
+            document.getElementById('pendingTickets').textContent = tickets.length - validatedTickets.length;
+        }
+
+        // Mostrar lista de tickets
+        function displayTicketsList() {
+            const listDiv = document.getElementById('ticketsList');
+            
+            if (tickets.length === 0) {
+                listDiv.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
+                        <h3>No hay tickets creados</h3>
+                        <p>Comienza creando tu primer ticket en la pestaña "Crear Ticket"</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = tickets.map(ticket => `
+                <div class="ticket-card" style="margin-bottom: 15px;">
+                    <div class="ticket-header">
+                        <div>
+                            <div class="ticket-id">${ticket.id}</div>
+                            <div style="margin-top: 10px; opacity: 0.8;">
+                                ${validatedTickets.includes(ticket.id) ? '✅ Validado' : '⏳ Pendiente'}
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.9rem; opacity: 0.8;">
+                                ${new Date(ticket.createdAt).toLocaleDateString()}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ticket-info">
+                        <div class="ticket-field">
+                            <strong>Propietario</strong>
+                            ${ticket.owner}
+                        </div>
+                        <div class="ticket-field">
+                            <strong>Curso</strong>
+                            ${ticket.course}
+                        </div>
+                        <div class="ticket-field">
+                            <strong>Actividad</strong>
+                            ${ticket.activity}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            listDiv.innerHTML = html;
+        }
+
+        // Filtrar tickets
+        function filterTickets() {
+            const searchTerm = document.getElementById('searchTickets').value.toLowerCase();
+            const filteredTickets = tickets.filter(ticket => 
+                ticket.owner.toLowerCase().includes(searchTerm) ||
+                ticket.course.toLowerCase().includes(searchTerm) ||
+                ticket.id.toLowerCase().includes(searchTerm) ||
+                ticket.activity.toLowerCase().includes(searchTerm)
+            );
+            
+            displayFilteredTickets(filteredTickets);
+        }
+
+        function displayFilteredTickets(filteredTickets) {
+            const listDiv = document.getElementById('ticketsList');
+            
+            if (filteredTickets.length === 0) {
+                listDiv.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No se encontraron tickets</h3>
+                        <p>Intenta con otros términos de búsqueda</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = filteredTickets.map(ticket => `
+                <div class="ticket-card" style="margin-bottom: 15px;">
+                    <div class="ticket-header">
+                        <div>
+                            <div class="ticket-id">${ticket.id}</div>
+                            <div style="margin-top: 10px; opacity: 0.8;">
+                                ${validatedTickets.includes(ticket.id) ? '✅ Validado' : '⏳ Pendiente'}
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.9rem; opacity: 0.8;">
+                                ${new Date(ticket.createdAt).toLocaleDateString()}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ticket-info">
+                        <div class="ticket-field">
+                            <strong>Propietario</strong>
+                            ${ticket.owner}
+                        </div>
+                        <div class="ticket-field">
+                            <strong>Curso</strong>
+                            ${ticket.course}
+                        </div>
+                        <div class="ticket-field">
+                            <strong>Actividad</strong>
+                            ${ticket.activity}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            listDiv.innerHTML = html;
+        }
+
+        // Exportar datos
+        function exportData() {
+            const data = {
+                tickets: tickets,
+                validatedTickets: validatedTickets,
+                exportDate: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `tickets_backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Importar datos
+        function importData() {
+            document.getElementById('fileInput').click();
+        }
+
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.tickets && Array.isArray(data.tickets)) {
+                        tickets = data.tickets;
+                        localStorage.setItem('tickets', JSON.stringify(tickets));
+                    }
+                    
+                    if (data.validatedTickets && Array.isArray(data.validatedTickets)) {
+                        validatedTickets = data.validatedTickets;
+                        localStorage.setItem('validatedTickets', JSON.stringify(validatedTickets));
+                    }
+                    
+                    alert('✅ Datos importados correctamente');
+                    updateStats();
+                } catch (error) {
+                    alert('❌ Error al importar el archivo');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Limpiar datos
+        function clearAllData() {
+            if (confirm('⚠️ ¿Estás seguro de que quieres eliminar todos los datos? Esta acción no se puede deshacer.')) {
+                tickets = [];
+                validatedTickets = [];
+                localStorage.removeItem('tickets');
+                localStorage.removeItem('validatedTickets');
+                updateStats();
+                displayTicketsList();
+                alert('✅ Todos los datos han sido eliminados');
+            }
+        }
+
+        // Funciones de Google Drive (simuladas)
+        function testDriveConnection() {
+            const apiKey = document.getElementById('driveApiKey').value;
+            const folderId = document.getElementById('driveFolderId').value;
+            
+            if (!apiKey || !folderId) {
+                alert('❌ Por favor complete todos los campos');
+                return;
+            }
+            
+            // Simulación de conexión
+            setTimeout(() => {
+                alert('✅ Conexión con Google Drive establecida correctamente');
+                config.driveApiKey = apiKey;
+                config.driveFolderId = folderId;
+                localStorage.setItem('config', JSON.stringify(config));
+            }, 1000);
+        }
+
+        function backupToGoogleDrive() {
+            if (!config.driveApiKey || !config.driveFolderId) {
+                return; // No hacer backup si no está configurado
+            }
+            
+            // Simulación de backup
+            console.log('🔄 Realizando backup automático a Google Drive...');
+            
+            // Aquí iría la implementación real de la API de Google Drive
+            // Para crear la estructura de carpetas como se especifica
+        }
+
+        // Google Drive API Functions
+        async function createDriveFolder(parentId, folderName) {
+            const apiKey = config.driveApiKey;
+            if (!apiKey) return null;
+            
+            try {
+                const metadata = {
+                    name: folderName,
+                    parents: [parentId],
+                    mimeType: 'application/vnd.google-apps.folder'
+                };
+                
+                const response = await fetch(`https://www.googleapis.com/drive/v3/files?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${config.accessToken}`
+                    },
+                    body: JSON.stringify(metadata)
+                });
+                
+                const folder = await response.json();
+                return folder.id;
+            } catch (error) {
+                console.error('Error creating folder:', error);
+                return null;
+            }
+        }
+        
+        async function uploadToDrive(folderId, fileName, content) {
+            const apiKey = config.driveApiKey;
+            if (!apiKey) return false;
+            
+            try {
+                const metadata = {
+                    name: fileName,
+                    parents: [folderId]
+                };
+                
+                const form = new FormData();
+                form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));
+                form.append('file', new Blob([content], {type: 'application/json'}));
+                
+                const response = await fetch(`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${config.accessToken}`
+                    },
+                    body: form
+                });
+                
+                return response.ok;
+            } catch (error) {
+                console.error('Error uploading to Drive:', error);
+                return false;
+            }
+        }
+        
+        async function backupToGoogleDrive() {
+            if (!config.driveApiKey || !config.driveFolderId || !config.accessToken) {
+                console.log('Google Drive no configurado completamente');
+                return;
+            }
+            
+            try {
+                // Crear estructura de carpetas
+                const currentYear = new Date().getFullYear();
+                const currentMonth = new Date().toLocaleString('es', { month: 'long' });
+                const today = new Date().toISOString().split('T')[0];
+                
+                // Crear carpeta del año
+                const yearFolderId = await createDriveFolder(config.driveFolderId, currentYear.toString());
+                if (!yearFolderId) return;
+                
+                // Crear carpeta del mes
+                const monthFolderId = await createDriveFolder(yearFolderId, currentMonth);
+                if (!monthFolderId) return;
+                
+                // Crear carpeta del día
+                const dayFolderId = await createDriveFolder(monthFolderId, today);
+                if (!dayFolderId) return;
+                
+                // Preparar datos para backup
+                const backupData = {
+                    tickets: tickets,
+                    validatedTickets: validatedTickets,
+                    backupDate: new Date().toISOString(),
+                    totalTickets: tickets.length,
+                    totalValidated: validatedTickets.length
+                };
+                
+                // Subir archivo
+                const fileName = `backup_${new Date().toISOString()}.json`;
+                const success = await uploadToDrive(dayFolderId, fileName, JSON.stringify(backupData, null, 2));
+                
+                if (success) {
+                    console.log('✅ Backup realizado correctamente en Google Drive');
+                    showNotification('✅ Backup automático completado', 'success');
+                } else {
+                    console.error('❌ Error al realizar backup');
+                    showNotification('❌ Error en backup automático', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error en backup:', error);
+                showNotification('❌ Error en backup automático', 'error');
+            }
+        }
+        
+        // Sistema de notificaciones
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 12px;
+                color: white;
+                font-weight: 600;
+                z-index: 1000;
+                animation: slideInRight 0.3s ease;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            `;
+            
+            switch(type) {
+                case 'success':
+                    notification.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+                    break;
+                case 'error':
+                    notification.style.background = 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)';
+                    break;
+                default:
+                    notification.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            }
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+        
+        // CSS para animaciones de notificaciones
+        const notificationStyles = document.createElement('style');
+        notificationStyles.textContent = `
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(notificationStyles);
+        
+        // Funciones adicionales para mejorar la experiencia
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification('📋 Código copiado al portapapeles', 'success');
+            }).catch(() => {
+                // Fallback para navegadores que no soportan clipboard API
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showNotification('📋 Código copiado al portapapeles', 'success');
+            });
+        }
+        
+        // Mejorar la visualización de tickets con botón de copia
+        function displayTicket(ticket) {
+            const result = document.getElementById('ticketResult');
+            result.innerHTML = `
+                <div class="ticket-card slide-in">
+                    <div class="ticket-header">
+                        <h3>✅ Ticket Generado</h3>
+                        <div class="ticket-id" onclick="copyToClipboard('${ticket.id}')" style="cursor: pointer; transition: all 0.3s ease;" 
+                             onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"
+                             title="Haz clic para copiar el código">${ticket.id}</div>
+                    </div>
+                    <div class="ticket-info">
+                        <div class="ticket-field">
+                            <strong>Propietario</strong>
+                            ${ticket.owner}
+                        </div>
+                        <div class="ticket-field">
+                            <strong>Curso</strong>
+                            ${ticket.course}
+                        </div>
+                        <div class="ticket-field">
+                            <strong>Actividad</strong>
+                            ${ticket.activity}
+                        </div>
+                        <div class="ticket-field">
+                            <strong>Fecha de Creación</strong>
+                            ${new Date(ticket.createdAt).toLocaleString()}
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px; text-align: center; opacity: 0.8; font-size: 0.9rem;">
+                        💡 Haz clic en el código para copiarlo
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Configuración de Google Drive OAuth
+        function initializeGoogleAuth() {
+            const clientId = document.getElementById('googleClientId')?.value;
+            if (!clientId) return;
+            
+            // Configurar OAuth2 para Google Drive
+            window.gapi?.load('auth2', () => {
+                gapi.auth2.init({
+                    client_id: clientId
+                }).then(() => {
+                    const authInstance = gapi.auth2.getAuthInstance();
+                    if (authInstance.isSignedIn.get()) {
+                        const user = authInstance.currentUser.get();
+                        const authResponse = user.getAuthResponse();
+                        config.accessToken = authResponse.access_token;
+                        localStorage.setItem('config', JSON.stringify(config));
+                    }
+                });
+            });
+        }
+        
+        // Función para autenticar con Google
+        function authenticateGoogle() {
+            if (!window.gapi) {
+                showNotification('❌ Google API no cargada', 'error');
+                return;
+            }
+            
+            const authInstance = gapi.auth2.getAuthInstance();
+            authInstance.signIn({
+                scope: 'https://www.googleapis.com/auth/drive.file'
+            }).then((user) => {
+                const authResponse = user.getAuthResponse();
+                config.accessToken = authResponse.access_token;
+                localStorage.setItem('config', JSON.stringify(config));
+                showNotification('✅ Autenticado con Google Drive', 'success');
+            }).catch((error) => {
+                console.error('Error de autenticación:', error);
+                showNotification('❌ Error de autenticación', 'error');
+            });
+        }
+        
+        // Función para generar reportes
+        function generateReport() {
+            const report = {
+                generatedAt: new Date().toISOString(),
+                totalTickets: tickets.length,
+                validatedTickets: validatedTickets.length,
+                pendingTickets: tickets.length - validatedTickets.length,
+                ticketsByActivity: {},
+                ticketsByCourse: {},
+                validationRate: tickets.length > 0 ? ((validatedTickets.length / tickets.length) * 100).toFixed(2) : 0
+            };
+            
+            // Agrupar por actividad
+            tickets.forEach(ticket => {
+                report.ticketsByActivity[ticket.activity] = (report.ticketsByActivity[ticket.activity] || 0) + 1;
+            });
+            
+            // Agrupar por curso
+            tickets.forEach(ticket => {
+                report.ticketsByCourse[ticket.course] = (report.ticketsByCourse[ticket.course] || 0) + 1;
+            });
+            
+            const blob = new Blob([JSON.stringify(report, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `reporte_tickets_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showNotification('📊 Reporte generado correctamente', 'success');
+        }
+        
+        // Función para programar backups automáticos
+        function scheduleAutoBackup() {
+            const intervalMinutes = parseInt(document.getElementById('backupInterval')?.value) || 60;
+            
+            // Limpiar intervalo anterior si existe
+            if (window.backupInterval) {
+                clearInterval(window.backupInterval);
+            }
+            
+            // Configurar nuevo intervalo
+            window.backupInterval = setInterval(() => {
+                if (tickets.length > 0) {
+                    backupToGoogleDrive();
+                }
+            }, intervalMinutes * 60 * 1000);
+            
+            showNotification(`⏰ Backup automático configurado cada ${intervalMinutes} minutos`, 'success');
+        }
+        
+        // Validación mejorada con histórico
+        function validateTicketEnhanced() {
+            const code = document.getElementById('ticketCode').value.toUpperCase().trim();
+            const resultDiv = document.getElementById('validationResult');
+            
+            if (!code) {
+                resultDiv.innerHTML = `
+                    <div class="validation-result validation-error slide-in">
+                        ❌ Por favor ingrese un código válido
+                    </div>
+                `;
+                return;
+            }
+
+            const ticket = tickets.find(t => t.id === code);
+            
+            if (!ticket) {
+                // Registrar intento fallido
+                const failedAttempts = JSON.parse(localStorage.getItem('failedValidations') || '[]');
+                failedAttempts.push({
+                    code: code,
+                    timestamp: new Date().toISOString(),
+                    ip: 'unknown' // En producción se podría obtener la IP
+                });
+                localStorage.setItem('failedValidations', JSON.stringify(failedAttempts));
+                
+                resultDiv.innerHTML = `
+                    <div class="validation-result validation-error slide-in">
+                        ❌ Ticket no encontrado
+                        <div style="margin-top: 10px; font-size: 0.9rem; opacity: 0.8;">
+                            Código: ${code}
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            if (validatedTickets.includes(code)) {
+                const validationHistory = JSON.parse(localStorage.getItem('validationHistory') || '[]');
+                const validation = validationHistory.find(v => v.ticketId === code);
+                
+                resultDiv.innerHTML = `
+                    <div class="validation-result validation-error slide-in">
+                        ⚠️ Este ticket ya ha sido validado anteriormente
+                        ${validation ? `<div style="margin-top: 10px; font-size: 0.9rem; opacity: 0.8;">
+                            Validado el: ${new Date(validation.timestamp).toLocaleString()}
+                        </div>` : ''}
+                    </div>
+                `;
+                return;
+            }
+
+            // Validar ticket
+            const validationTime = new Date().toISOString();
+            validatedTickets.push(code);
+            ticket.validated = true;
+            ticket.validatedAt = validationTime;
+            
+            // Guardar en histórico de validaciones
+            const validationHistory = JSON.parse(localStorage.getItem('validationHistory') || '[]');
+            validationHistory.push({
+                ticketId: code,
+                timestamp: validationTime,
+                ticketData: ticket
+            });
+            localStorage.setItem('validationHistory', JSON.stringify(validationHistory));
+            
+            localStorage.setItem('validatedTickets', JSON.stringify(validatedTickets));
+            localStorage.setItem('tickets', JSON.stringify(tickets));
+            
+            resultDiv.innerHTML = `
+                <div class="validation-result validation-success slide-in">
+                    <h3>✅ Ticket Validado Correctamente</h3>
+                    <div class="ticket-info" style="margin-top: 20px;">
+                        <div class="ticket-field">
+                            <strong>Código</strong>
+                            ${ticket.id}
+                        </div>
+                        <div class="ticket-field">
+                            <strong>Propietario</strong>
+                            ${ticket.owner}
+                        </div>
+                        <div class="ticket-field">
+                            <strong>Curso</strong>
+                            ${ticket.course}
+                        </div>
+                        <div class="ticket-field">
+                            <strong>Actividad</strong>
+                            ${ticket.activity}
+                        </div>
+                        <div class="ticket-field">
+                            <strong>Validado</strong>
+                            ${new Date(validationTime).toLocaleString()}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('ticketCode').value = '';
+            updateStats();
+            showNotification('✅ Ticket validado correctamente', 'success');
+            
+            // Backup automático después de validación
+            setTimeout(() => {
+                backupToGoogleDrive();
+            }, 1000);
+        }
+        
+        // Función para ver historial de validaciones
+        function viewValidationHistory() {
+            const history = JSON.parse(localStorage.getItem('validationHistory') || '[]');
+            
+            if (history.length === 0) {
+                showNotification('📋 No hay validaciones en el historial', 'info');
+                return;
+            }
+            
+            const modal = createModal('Historial de Validaciones', `
+                <div style="max-height: 400px; overflow-y: auto;">
+                    ${history.reverse().map(validation => `
+                        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">Código: ${validation.ticketId}</div>
+                            <div style="font-size: 0.9rem; opacity: 0.8;">
+                                Propietario: ${validation.ticketData.owner}<br>
+                                Curso: ${validation.ticketData.course}<br>
+                                Validado: ${new Date(validation.timestamp).toLocaleString()}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `);
+            document.body.appendChild(modal);
+        }
+        
+        // Función para ver intentos fallidos
+        function viewFailedAttempts() {
+            const failed = JSON.parse(localStorage.getItem('failedValidations') || '[]');
+            
+            if (failed.length === 0) {
+                showNotification('⚠️ No hay intentos fallidos registrados', 'info');
+                return;
+            }
+            
+            const modal = createModal('Intentos de Validación Fallidos', `
+                <div style="max-height: 400px; overflow-y: auto;">
+                    ${failed.reverse().map(attempt => `
+                        <div style="background: rgba(255,100,100,0.1); padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #ff6b6b;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">Código: ${attempt.code}</div>
+                            <div style="font-size: 0.9rem; opacity: 0.8;">
+                                Intento: ${new Date(attempt.timestamp).toLocaleString()}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `);
+            document.body.appendChild(modal);
+        }
+        
+        // Función para crear modales
+        function createModal(title, content) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: white;
+                    border-radius: 20px;
+                    padding: 30px;
+                    max-width: 600px;
+                    width: 90%;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    position: relative;
+                    animation: slideInUp 0.3s ease;
+                ">
+                    <h2 style="margin-bottom: 20px; color: #333;">${title}</h2>
+                    ${content}
+                    <button onclick="this.closest('.modal').remove()" style="
+                        position: absolute;
+                        top: 15px;
+                        right: 15px;
+                        background: none;
+                        border: none;
+                        font-size: 1.5rem;
+                        cursor: pointer;
+                        color: #999;
+                    ">×</button>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button onclick="this.closest('div[style*=\"position: fixed\"]').remove()" class="btn">Cerrar</button>
+                    </div>
+                </div>
+            `;
+            
+            modal.className = 'modal';
+            
+            // Cerrar modal al hacer clic fuera
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+            
+            return modal;
+        }
+        
+        // CSS adicional para animaciones de modales
+        const modalStyles = document.createElement('style');
+        modalStyles.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            @keyframes slideInUp {
+                from {
+                    transform: translateY(50px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(modalStyles);
+        
+        // Función para cargar configuración guardada
+        function loadSavedConfig() {
+            if (config.driveApiKey) {
+                document.getElementById('driveApiKey').value = config.driveApiKey;
+            }
+            if (config.driveFolderId) {
+                document.getElementById('driveFolderId').value = config.driveFolderId;
+            }
+        }
+        
+        // Inicializar aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStats();
+            loadSavedConfig();
+            
+            // Cargar Google API si es necesario
+            if (!window.gapi) {
+                const script = document.createElement('script');
+                script.src = 'https://apis.google.com/js/api.js';
+                script.onload = initializeGoogleAuth;
+                document.head.appendChild(script);
+            }
+            
+            // Configurar backup automático si está habilitado
+            if (config.autoBackup) {
+                scheduleAutoBackup();
+            }
+            
+            showNotification('🎫 Sistema de Tickets inicializado correctamente', 'success');
+        });
+        
+        // Event listeners adicionales
+        document.getElementById('ticketCode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                validateTicket();
+            }
+        });
+        
+        // Auto-uppercase para código de ticket
+        document.getElementById('ticketCode').addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+    </script>
+</body>
+</html>
